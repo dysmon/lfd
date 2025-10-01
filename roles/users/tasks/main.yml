@@ -1,0 +1,82 @@
+---
+- name: Ensure groups exist
+  group:
+    name: "{{ item.group }}"
+    state: present
+  loop: "{{ users }}"
+
+- name: Ensure users exist
+  user:
+    name: "{{ item.name }}"
+    group: "{{ item.group }}"
+    shell: "{{ item.shell }}"
+    system: "{{ item.system | default(false) }}"
+    create_home: "{{ item.home | default(false) }}"
+  loop: "{{ users }}"
+
+- name: Remove ubuntu user
+  user:
+    name: ubuntu
+    state: absent
+    remove: yes
+
+- name: Configure sudo for admin group
+  copy:
+    dest: /etc/sudoers.d/admin
+    content: "%admin ALL=(ALL) NOPASSWD: ALL\n"
+    mode: '0440'
+
+- name: Configure sudo for auditor group
+  copy:
+    dest: /etc/sudoers.d/auditor
+    content: "%auditor ALL=(ALL) NOPASSWD: /usr/bin/journalctl\n"
+    mode: '0440'
+
+- name: Add SSH key for admin_user
+  authorized_key:
+    user: dias
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: Set ownership for Prometheus data dir
+  file:
+    path: /var/lib/prometheus
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: '0750'
+
+- name: Set ownership for Loki data dir
+  file:
+    path: /var/lib/loki
+    state: directory
+    owner: loki
+    group: loki
+    mode: '0750'
+
+- name: Set ownership for Grafana config
+  file:
+    path: /etc/grafana
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: '0750'
+
+- name: Allow auditor group to read Loki logs
+  file:
+    path: /var/log/loki
+    state: directory
+    owner: loki
+    group: auditor
+    mode: '0750'
+    recurse: yes
+
+- name: Allow auditor group to read Prometheus logs
+  file:
+    path: /var/log/prometheus
+    state: directory
+    owner: prometheus
+    group: auditor
+    mode: '0750'
+    recurse: yes
+

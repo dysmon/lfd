@@ -1,0 +1,7 @@
+users:
+  - { name: "dias", group: "admin", shell: "/bin/bash", password: "", home: "yes" }
+  - { name: "auditor", group: "auditor", shell: "/bin/bash", password: "", home: "yes" }
+  - { name: "prometheus", group: "prometheus", shell: "/usr/sbin/nologin", system: true }
+  - { name: "loki", group: "loki", shell: "/usr/sbin/nologin", system: true }
+  - { name: "grafana", group: "grafana", shell: "/usr/sbin/nologin", system: true }
+  - { name: "alloy", group: "alloy", shell: "/usr/sbin/nologin", system: true }

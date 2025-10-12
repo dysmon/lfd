@@ -10,6 +10,7 @@
     name: "{{ item.name }}"
     group: "{{ item.group }}"
     shell: "{{ item.shell }}"
+    password: "{{ item.password | default(omit) }}"
     system: "{{ item.system | default(false) }}"
     create_home: "{{ item.home | default(false) }}"
   loop: "{{ users }}"
@@ -23,13 +24,13 @@
 - name: Configure sudo for admin group
   copy:
     dest: /etc/sudoers.d/admin
-    content: "%admin ALL=(ALL) NOPASSWD: ALL\n"
+    content: "%admin ALL=(ALL) ALL\n"
     mode: '0440'
 
 - name: Configure sudo for auditor group
   copy:
     dest: /etc/sudoers.d/auditor
-    content: "%auditor ALL=(ALL) NOPASSWD: /usr/bin/journalctl\n"
+    content: "%auditor ALL=(ALL) /usr/bin/journalctl\n"
     mode: '0440'
 
 - name: Add SSH key for admin_user

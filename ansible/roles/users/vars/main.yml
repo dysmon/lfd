@@ -1,6 +1,6 @@
 users:
-  - { name: "dias", group: "admin", shell: "/bin/bash", password: "", home: "yes" }
-  - { name: "auditor", group: "auditor", shell: "/bin/bash", password: "", home: "yes" }
+  - { name: "dias", group: "admin", shell: "/bin/bash", password: "$6$HT5/Q3AoFl9OIzYx$62TJc7srAjWshdGgF8/kPO8IE.O5nQA5JbTvckq6HpWu6FI4wziT7ZrxU25bjzvOglXyM/cXLtvfB2dRGUSMx1", home: "yes" }
+  - { name: "auditor", group: "auditor", shell: "/bin/bash", password: "$6$WadOfZvXbXMCFJHo$mKALUHEfTXDNVarHuq0SrG9o/fOR0qgqlOWjA0VmHcMy56fdUtBwKw08up6g.bfPGwlVIdePhZam0hhTzt74R/", home: "yes" }
   - { name: "prometheus", group: "prometheus", shell: "/usr/sbin/nologin", system: true }
   - { name: "loki", group: "loki", shell: "/usr/sbin/nologin", system: true }
   - { name: "grafana", group: "grafana", shell: "/usr/sbin/nologin", system: true }

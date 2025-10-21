@@ -1,0 +1,93 @@
+---
+- name: Set ownership for Promtail data dir
+  file:
+    path: /var/lib/promtail
+    state: directory
+    owner: promtail
+    group: promtail
+    mode: '0750'
+
+- name: Set ownership for Loki data dir
+  file:
+    path: /var/lib/loki
+    state: directory
+    owner: loki
+    group: loki
+    mode: '0750'
+
+- name: Create directory for Grafana keyrings
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download and store Grafana GPG key
+  ansible.builtin.shell: |
+    wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
+  args:
+    creates: /etc/apt/keyrings/grafana.gpg
+
+- name: Add Grafana APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main"
+    state: present
+    filename: grafana
+
+- name: Update APT and install Loki and Promtail and Grafana
+  ansible.builtin.apt:
+    name:
+      - promtail
+      - loki
+      - grafana
+    state: present
+    update_cache: true
+
+- name: Deploy Loki configuration
+  ansible.builtin.template:
+    src: loki-config.yml.j2
+    dest: /etc/loki/config.yml
+    owner: loki
+    group: loki
+    mode: '0644'
+
+- name: Enable and start Loki service
+  ansible.builtin.service:
+    name: loki
+    state: restarted # better use handlers
+    enabled: true
+
+- name: Deploy Promtail configuration
+  ansible.builtin.template:
+    src: promtail-config.yml.j2
+    dest: /etc/promtail/config.yml
+    owner: promtail
+    group: promtail
+    mode: '0644'
+
+- name: Enable and start Promtail service
+  ansible.builtin.service:
+    name: promtail
+    state: restarted
+    enabled: true
+
+- name: Ensure Grafana provisioning directory exists
+  ansible.builtin.file:
+    path: /etc/grafana/provisioning/datasources
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: "0755"
+
+- name: Deploy Grafana datasource configuration
+  ansible.builtin.template:
+    src: datasources.yml.j2
+    dest: /etc/grafana/provisioning/datasources/datasources.yml
+    owner: grafana
+    group: grafana
+    mode: "0644"
+
+- name: Enable and start Grafana service
+  ansible.builtin.systemd:
+    name: grafana-server
+    enabled: yes
+    state: restarted

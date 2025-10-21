@@ -1,0 +1,43 @@
+---
+- name: Ensure UFW is installed
+  apt:
+    name: ufw
+    state: present
+    update_cache: yes
+
+- name: Set default policies (deny incoming, allow outgoing)
+  ufw:
+    state: enabled
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: incoming, policy: deny }
+    - { direction: outgoing, policy: allow }
+
+- name: Allow SSH
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+
+- name: Allow Prometheus port
+  ufw:
+    rule: allow
+    port: 9090
+    proto: tcp
+
+- name: Allow Loki port
+  ufw:
+    rule: allow
+    port: 3100
+    proto: tcp
+
+- name: Allow Grafana port
+  ufw:
+    rule: allow
+    port: 3000
+    proto: tcp
+
+- name: Ensure UFW is enabled and reloaded
+  ufw:
+    state: enabled

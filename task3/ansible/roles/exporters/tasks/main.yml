@@ -1,0 +1,70 @@
+---
+- name: Download node_exporter archive
+  ansible.builtin.get_url:
+    url: https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+    dest: /tmp/node_exporter.tar.gz
+    mode: '0644'
+
+- name: Extract node_exporter
+  ansible.builtin.unarchive:
+    src: /tmp/node_exporter.tar.gz
+    dest: /tmp/
+    remote_src: true
+
+- name: Move node_exporter to /opt directory
+  ansible.builtin.command:
+    cmd: mv /tmp/node_exporter-0.18.1.linux-amd64 /opt/node_exporter
+    creates: /opt/node_exporter/node_exporter
+
+- name: Change ownership of node_exporter directory
+  ansible.builtin.file:
+    path: /opt/node_exporter
+    owner: node_exporter
+    group: node_exporter
+    recurse: true
+
+
+
+- name: Create systemd service for node_exporter
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/node_exporter.service
+    content: |
+      [Unit]
+      Description=Node Exporter
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=node_exporter
+      Group=node_exporter
+      Type=simple
+      ExecStart=/opt/node_exporter/node_exporter --collector.systemd
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Reload systemd to apply node_exporter service
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start node_exporter service
+  ansible.builtin.systemd:
+    name: node_exporter
+    state: started
+    enabled: true
+
+- name: Run cAdvisor container
+  community.docker.docker_container:
+    name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
+    state: started
+    restart_policy: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro

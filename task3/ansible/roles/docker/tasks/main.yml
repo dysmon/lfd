@@ -1,0 +1,14 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install the package "docker.io"
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+
+- name: Enable and start Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes

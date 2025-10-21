@@ -1,0 +1,20 @@
+---
+- name: Install Prometheus
+  apt:
+    name: prometheus
+    state: present
+    update_cache: yes
+
+- name: Deploy Prometheus configuration file
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: '0644'
+
+- name: Ensure Prometheus service is enabled and restarted
+  systemd:
+    name: prometheus
+    state: restarted
+    enabled: yes

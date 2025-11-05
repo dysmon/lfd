@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup Prometheus data on schedule
+
+[Timer]
+OnCalendar=*-*-* {{ prometheus_backup_times }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

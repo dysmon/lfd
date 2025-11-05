@@ -1,0 +1,4 @@
+prometheus_data_dir: /var/lib/prometheus
+backup_dir: /opt/backups
+docker_prune_time: "04:00"
+prometheus_backup_times: "00,12:00"

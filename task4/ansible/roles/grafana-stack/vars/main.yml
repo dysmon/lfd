@@ -1,0 +1,15 @@
+---
+grafana_gpg_key_url: https://apt.grafana.com/gpg.key
+grafana_repo: "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main"
+
+loki_config_path: /etc/loki/config.yml
+promtail_config_path: /etc/promtail/config.yml
+grafana_datasource_path: /etc/grafana/provisioning/datasources/datasources.yml
+
+loki_owner: loki
+promtail_owner: promtail
+grafana_owner: grafana
+
+loki_service: loki
+promtail_service: promtail
+grafana_service: grafana-server

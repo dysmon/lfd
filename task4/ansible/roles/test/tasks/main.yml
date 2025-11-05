@@ -1,0 +1,77 @@
+---
+- name: Wait 120 seconds for services to start
+  pause:
+    seconds: 120
+
+- name: Check Prometheus is running and responding
+  uri:
+    url: http://127.0.0.1:9090/-/ready
+    status_code: 200
+  register: prometheus_status
+  failed_when: prometheus_status.status != 200
+  tags: prometheus
+# PAM
+# configure ssh known_hosts
+- name: Check Loki is running and responding
+  uri:
+    url: http://127.0.0.1:3100/ready
+    status_code: 200
+  register: loki_status
+  failed_when: loki_status.status != 200
+  tags: loki
+
+- name: Check Grafana is running and responding
+  uri:
+    url: http://127.0.0.1:3000/login
+    status_code: 200
+  register: grafana_status
+  failed_when: grafana_status.status != 200
+  tags: grafana
+
+- name: Check Promtail is running and responding
+  uri:
+    url: http://127.0.0.1:9080/ready
+    status_code: 200
+  register: promtail_status
+  failed_when: promtail_status.status != 200
+  tags: promtail
+
+- name: Check Node Exporter is running and responding
+  uri:
+    url: http://127.0.0.1:9100/metrics
+    status_code: 200
+  register: node_exporter_status
+  failed_when: node_exporter_status.status != 200
+  tags: node_exporter
+
+- name: Check cAdvisor is running and responding
+  uri:
+    url: http://127.0.0.1:8080/metrics
+    status_code: 200
+  register: cadvisor_status
+  failed_when: cadvisor_status.status != 200
+  tags: cadvisor
+
+- name: Generate test report file
+  copy:
+    dest: /tmp/smoke-report.txt
+    content: |
+      Smoke Test Results ({{ ansible_date_time.iso8601 }})
+      ============================================
+      Prometheus: {{ prometheus_status.status }}
+      Loki: {{ loki_status.status }}
+      Grafana: {{ grafana_status.status }}
+      Promtail: {{ promtail_status.status }}
+      Node Exporter: {{ node_exporter_status.status }}
+      cAdvisor: {{ cadvisor_status.status }}
+  tags: report
+
+- name: Print summary
+  debug:
+    msg:
+      - "✅ Prometheus: {{ prometheus_status.status }}"
+      - "✅ Loki: {{ loki_status.status }}"
+      - "✅ Grafana: {{ grafana_status.status }}"
+      - "✅ Promtail: {{ promtail_status.status }}"
+      - "✅ Node Exporter: {{ node_exporter_status.status }}"
+      - "✅ cAdvisor: {{ cadvisor_status.status }}"

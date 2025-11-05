@@ -1,0 +1,94 @@
+---
+- name: Ensure groups exist
+  group:
+    name: "{{ item.group }}"
+    state: present
+  loop: "{{ users }}"
+
+- name: Ensure users exist
+  user:
+    name: "{{ item.name }}"
+    group: "{{ item.group }}"
+    shell: "{{ item.shell }}"
+    password: "{{ item.password | default(omit) }}"
+    system: "{{ item.system | default(false) }}"
+    create_home: "{{ item.home | default(false) }}"
+  loop: "{{ users }}"
+
+- name: Remove ubuntu user
+  user:
+    name: ubuntu
+    state: absent
+    remove: yes
+
+- name: Configure sudo for admin group
+  copy:
+    dest: /etc/sudoers.d/admin
+    content: "%admin ALL=(ALL) ALL\n"
+    mode: '0440'
+
+- name: Configure sudo for auditor group
+  copy:
+    dest: /etc/sudoers.d/auditor
+    content: "%auditor ALL=(ALL) /usr/bin/journalctl\n"
+    mode: '0440'
+
+- name: Add SSH key for admin_user
+  authorized_key:
+    user: dias
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: Set ownership for Grafana config
+  file:
+    path: /etc/grafana
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: '0750'
+
+- name: Ensure ACL tools are installed
+  ansible.builtin.package:
+    name: acl
+    state: present
+  become: true
+
+- name: Ensure Auditor has read access to /var/log
+  ansible.builtin.command:
+    cmd: setfacl -R -m u:auditor:rX /var/log
+  become: true
+
+- name: Set default ACL for Auditor for future logs
+  ansible.builtin.command:
+    cmd: setfacl -R -d -m u:auditor:rX /var/log
+  become: true
+
+- name: Ensure Promtail has read access to /var/log
+  ansible.builtin.command:
+    cmd: setfacl -R -m u:promtail:rX /var/log
+  become: true
+
+- name: Set default ACL for Promtail for future logs
+  ansible.builtin.command:
+    cmd: setfacl -R -d -m u:promtail:rX /var/log
+  become: true
+
+- name: Ensure Promtail can traverse parent Docker directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /var/lib/docker
+    - /var/lib/docker/containers
+  become: true
+
+- name: Set default ACL for Promtail on future container folders
+  ansible.builtin.command:
+    cmd: setfacl -d -m u:promtail:rx /var/lib/docker/containers
+  become: true
+
+- name: Ensure Promtail has access to existing container folders
+  ansible.builtin.command:
+    cmd: setfacl -R -m u:promtail:rx /var/lib/docker/containers
+  become: true

@@ -1,0 +1,55 @@
+---
+- name: Download node_exporter archive
+  ansible.builtin.get_url:
+    url: "{{ node_exporter_archive_url }}"
+    dest: "{{ node_exporter_archive_path }}"
+    mode: '0644'
+
+- name: Extract node_exporter
+  ansible.builtin.unarchive:
+    src: "{{ node_exporter_archive_path }}"
+    dest: /tmp/
+    remote_src: true
+
+- name: Move node_exporter to /opt directory
+  ansible.builtin.command:
+    cmd: mv {{ node_exporter_extract_dir }} {{ node_exporter_dir }}
+    creates: "{{ node_exporter_dir }}/node_exporter"
+
+- name: Change ownership of node_exporter directory
+  ansible.builtin.file:
+    path: "{{ node_exporter_dir }}"
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    recurse: true
+
+- name: Create systemd service for node_exporter
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: "{{ node_exporter_service_path }}"
+    mode: '0644'
+
+- name: Reload systemd to apply node_exporter service
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start node_exporter service
+  ansible.builtin.systemd:
+    name: node_exporter
+    state: started
+    enabled: true
+
+- name: Run cAdvisor container
+  community.docker.docker_container:
+    name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
+    state: started
+    restart_policy: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro

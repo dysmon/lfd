@@ -1,0 +1,45 @@
+---
+- name: Ensure backup directory exists
+  file:
+    path: "{{ backup_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy docker prune service
+  template:
+    src: docker-prune.service.j2
+    dest: /etc/systemd/system/docker-prune.service
+    mode: '0644'
+
+- name: Deploy docker prune timer
+  template:
+    src: docker-prune.timer.j2
+    dest: /etc/systemd/system/docker-prune.timer
+    mode: '0644'
+
+- name: Deploy prometheus backup service
+  template:
+    src: prometheus-backup.service.j2
+    dest: /etc/systemd/system/prometheus-backup.service
+    mode: '0644'
+
+- name: Deploy prometheus backup timer
+  template:
+    src: prometheus-backup.timer.j2
+    dest: /etc/systemd/system/prometheus-backup.timer
+    mode: '0644'
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable & start timers
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - docker-prune.timer
+    - prometheus-backup.timer

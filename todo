@@ -1,0 +1,4 @@
+- [] loki can't access var/lib/docker logs
+- [] add terraform to workflow
+- [] add integrate tests to workflow
+- [] frontend issues

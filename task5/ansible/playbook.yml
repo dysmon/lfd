@@ -3,11 +3,11 @@
   become: true
   roles:
     - role: users
-    # - role: docker
-    # - role: exporters
-    # - role: grafana-stack
-    # - role: prometheus
-    # - role: firewall
-    # - role: app
-    # - role: maintenance
+    - role: docker
+    - role: exporters
+    - role: grafana-stack
+    - role: prometheus
+    - role: firewall
+    - role: app
+    - role: maintenance
     # - role: test

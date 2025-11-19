@@ -1,0 +1,19 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install the package "docker.io"
+  ansible.builtin.apt:
+    name: "{{ docker_package }}"
+    state: present
+
+- name: Install the package "docker-compose"
+  ansible.builtin.apt:
+    name: "docker-compose"
+    state: present
+
+- name: Enable and start Docker
+  service:
+    name: "{{ docker_service }}"
+    state: started
+    enabled: yes

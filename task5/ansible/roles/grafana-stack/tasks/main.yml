@@ -1,0 +1,76 @@
+---
+- name: Ensure required directories exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: /var/lib/promtail, owner: "{{ promtail_owner }}", group: "{{ promtail_owner }}", mode: '0750' }
+    - { path: /var/lib/loki, owner: "{{ loki_owner }}", group: "{{ loki_owner }}", mode: '0750' }
+    - { path: /etc/apt/keyrings, owner: root, group: root, mode: '0755' }
+    - { path: /etc/grafana/provisioning/datasources, owner: "{{ grafana_owner }}", group: "{{ grafana_owner }}", mode: '0755' }
+
+- name: Download and store Grafana GPG key
+  ansible.builtin.shell: |
+    wget -q -O - {{ grafana_gpg_key_url }} | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
+  args:
+    creates: /etc/apt/keyrings/grafana.gpg
+
+- name: Add Grafana APT repository
+  ansible.builtin.apt_repository:
+    repo: "{{ grafana_repo }}"
+    state: present
+    filename: grafana
+
+- name: Install Loki, Promtail, and Grafana
+  ansible.builtin.apt:
+    name:
+      - loki
+      - promtail
+      - grafana
+    state: present
+    update_cache: yes
+
+- name: Deploy Loki configuration
+  ansible.builtin.template:
+    src: loki-config.yml.j2
+    dest: "{{ loki_config_path }}"
+    owner: "{{ loki_owner }}"
+    group: "{{ loki_owner }}"
+    mode: '0644'
+
+- name: Deploy Promtail configuration
+  ansible.builtin.template:
+    src: promtail-config.yml.j2
+    dest: "{{ promtail_config_path }}"
+    owner: "{{ promtail_owner }}"
+    group: "{{ promtail_owner }}"
+    mode: '0644'
+
+- name: Deploy Grafana datasource configuration
+  ansible.builtin.template:
+    src: datasources.yml.j2
+    dest: "{{ grafana_datasource_path }}"
+    owner: "{{ grafana_owner }}"
+    group: "{{ grafana_owner }}"
+    mode: '0644'
+
+- name: Ensure Loki service is started and enabled
+  ansible.builtin.systemd:
+    name: "{{ loki_service }}"
+    state: restarted
+    enabled: true
+
+- name: Ensure Promtail service is started and enabled
+  ansible.builtin.systemd:
+    name: "{{ promtail_service }}"
+    state: restarted
+    enabled: true
+
+- name: Ensure Grafana service is started and enabled
+  ansible.builtin.systemd:
+    name: "{{ grafana_service }}"
+    state: restarted
+    enabled: true

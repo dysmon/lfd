@@ -1,0 +1,8 @@
+node_exporter_version: "0.18.1"
+node_exporter_user: "node_exporter"
+node_exporter_group: "node_exporter"
+node_exporter_dir: "/opt/node_exporter"
+node_exporter_archive_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+node_exporter_archive_path: "/tmp/node_exporter.tar.gz"
+node_exporter_extract_dir: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64"
+node_exporter_service_path: "/etc/systemd/system/node_exporter.service"

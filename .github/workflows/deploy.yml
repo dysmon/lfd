@@ -1,0 +1,37 @@
+name: Deploy Ansible
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Ansible
+      run: |
+        sudo apt update
+        sudo apt install -y ansible python3-pip
+        pip3 install -r ansible/requirements.txt || true
+
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Add server to known_hosts
+      run: |
+        ssh-keyscan -H "${{ vars.VM_IP }}" >> ~/.ssh/known_hosts
+
+    - name: Run Ansible
+      env:
+        VM_IP: ${{ vars.VM_IP }}
+      run: |
+        cd ansible
+        ansible-playbook -i inventory.ini playbook.yml

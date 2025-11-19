@@ -1,0 +1,5 @@
+---
+prometheus_service: prometheus
+prometheus_config_path: /etc/prometheus/prometheus.yml
+prometheus_owner: prometheus
+prometheus_group: prometheus

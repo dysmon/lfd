@@ -1,0 +1,12 @@
+firewall_default_policies:
+  - { direction: "incoming", policy: "deny" }
+  - { direction: "outgoing", policy: "allow" }
+
+firewall_allowed_ports:
+  - { port: 22,   proto: "tcp", name: "SSH" }
+  - { port: 9090, proto: "tcp", name: "Prometheus" }
+  - { port: 3100, proto: "tcp", name: "Loki" }
+  - { port: 3000, proto: "tcp", name: "Grafana" }
+  - { port: 80, proto: "tcp", name: "HTTP" }
+  - { port: 443, proto: "tcp", name: "HTTPS" }
+  - { port: 8000, proto: "tcp", name: "Backend" }

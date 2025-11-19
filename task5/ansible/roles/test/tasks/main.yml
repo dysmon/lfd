@@ -10,8 +10,7 @@
   register: prometheus_status
   failed_when: prometheus_status.status != 200
   tags: prometheus
-# PAM
-# configure ssh known_hosts
+
 - name: Check Loki is running and responding
   uri:
     url: http://127.0.0.1:3100/ready

@@ -32,8 +32,6 @@ jobs:
         ssh-keyscan -H "${{ vars.VM_IP }}" >> ~/.ssh/known_hosts
 
     - name: Run Ansible
-      env:
-        VM_IP: ${{ vars.VM_IP }}
       run: |
         cd task5/ansible
-        ansible-playbook -i inventory.ini playbook.yml
+        ansible-playbook -i inventory.ini playbook.yml -e "ansible_host=${{ vars.VM_IP }}"

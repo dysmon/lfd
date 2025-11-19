@@ -17,3 +17,28 @@
     name: "{{ docker_service }}"
     state: started
     enabled: yes
+
+- name: Remove restrictive ACLs on containers directory
+  ansible.builtin.command:
+    cmd: setfacl -b /var/lib/docker/containers
+  become: true
+
+- name: Ensure Promtail can traverse parent Docker directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /var/lib/docker
+    - /var/lib/docker/containers
+  become: true
+
+- name: Set default ACL for Promtail on future container folders
+  ansible.builtin.command:
+    cmd: setfacl -d -m u:promtail:rx /var/lib/docker/containers
+  become: true
+
+- name: Ensure Promtail has access to existing container folders
+  ansible.builtin.command:
+    cmd: setfacl -R -m u:promtail:rx /var/lib/docker/containers
+  become: true
